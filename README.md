@@ -107,7 +107,7 @@ Sonrasında sistem üzerindeki uygulamaları yenileyin:
 ```bash
 update-desktop-database ~/.local/share/applications
 ```
-
+Flatpak tarafında her alınan güncelleme argümanları sıfırladığı için uygulamayı güncelledikten sonra girip tekrar argüman eklemeniz gerekiyor ve tekrardan update-desktop-database yapmanız gerek.
 Bu kadar basit.
 
 ## Kaldırma
