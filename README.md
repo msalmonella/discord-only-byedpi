@@ -61,7 +61,7 @@ systemctl --user daemon-reload
 systemctl --user enable --now ciadpi-discord.service
 ```
 
-> `ExecStart`'taki argümanlar Superonline için çalıştı. Kendi internet servis sağlayıcınız için [ByeDPI README](https://github.com/hufrea/byedpi)'sini okuyun ve deneme yapın.
+> `ExecStart`'taki argümanlar SansürOffline için çalıştı. Kendi internet servis sağlayıcınız için [ByeDPI README](https://github.com/hufrea/byedpi)'sini okuyun ve deneme yapın.
 
 ## 5. Test edin
 
