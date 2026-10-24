@@ -1,8 +1,10 @@
 # [REHBER] discord-only-byedpi
 
-Tüm internet trafiği yerine sadece Discord'u DNS adresinden geçirme.
+Tüm internet trafiği yerine sadece Discord'u ByeDPI proxy'si ve DNS yönlendirmesi ile açma.
 
 [hufrea/byedpi](https://github.com/hufrea/byedpi) için hufrea'ya teşekkürler.
+
+> **Test edilen ortam:** Fedora, Flatpak Discord, Superonline.
 
 ## 1. ByeDPI'ı derleyin
 
@@ -14,9 +16,21 @@ Ya da hangi dağıtıma ait paket yöneticisini kullanıyorsanız.
 
 ```bash
 git clone https://github.com/hufrea/byedpi
-cd byedpi && make
+cd byedpi && git checkout v0.17.3 && make
 mkdir -p ~/.local/bin
 cp ciadpi ~/.local/bin/
+```
+
+`v0.17.3`, bu rehberin test edildiği sürümdür.
+
+**Derlemek istemiyorsanız**, aynı sürümün hazır dosyasını da kullanabilirsiniz:
+
+```bash
+curl -L -o ciadpi.tar.gz "https://github.com/hufrea/byedpi/releases/download/v0.17.3/byedpi-17.3-$(uname -m).tar.gz"
+tar -zxf ciadpi.tar.gz
+mkdir -p ~/.local/bin
+find . -type f -name 'ciadpi-*' -exec cp {} ~/.local/bin/ciadpi \;
+chmod +x ~/.local/bin/ciadpi
 ```
 
 ## 2. dnscrypt-proxy'yi kurun
@@ -25,6 +39,24 @@ cp ciadpi ~/.local/bin/
 sudo dnf install dnscrypt-proxy   # kendi dağıtımınıza göre paket farklı olabilir
 sudo systemctl enable --now dnscrypt-proxy
 dig discord.com @127.0.0.1        # çıktıda NOERROR ve 162.159.x.x adresleri görünmeli
+```
+
+`dig` hata verirse ya da cevap gelmezse sunucu listesini sabitleyin:
+
+```bash
+sudo nano /etc/dnscrypt-proxy/dnscrypt-proxy.toml
+```
+
+Dosyada şu satırı bulup şöyle değiştirin:
+
+```
+server_names = ['cloudflare', 'google', 'quad9-dnscrypt-ip4-filter-pri']
+```
+
+Sonra:
+
+```bash
+sudo systemctl restart dnscrypt-proxy
 ```
 
 ## 3. Discord alan adlarını dnscrypt'e yönlendirin
@@ -62,6 +94,22 @@ systemctl --user enable --now ciadpi-discord.service
 ```
 
 > `ExecStart`'taki argümanlar SansürOffline için çalıştı. Kendi internet servis sağlayıcınız için [ByeDPI README](https://github.com/hufrea/byedpi)'sini okuyun ve deneme yapın.
+
+Çalışmazsa şu alternatif argümanları deneyebilirsiniz ([byedpi-turkey](https://github.com/elrondforwin/byedpi-turkey) profillerinden):
+
+```
+--oob=1 --auto=torst,redirect,ssl_err
+```
+
+```
+--proto=tls --split=1 --disorder=1 --fake=-1 --md5sig --auto=torst,redirect,ssl_err --timeout=2
+```
+
+Argümanları değiştirdikten sonra servisi yeniden başlatın:
+
+```bash
+systemctl --user restart ciadpi-discord.service
+```
 
 ## 5. Test edin
 
@@ -107,8 +155,25 @@ Sonrasında sistem üzerindeki uygulamaları yenileyin:
 ```bash
 update-desktop-database ~/.local/share/applications
 ```
-Flatpak tarafında her alınan güncelleme argümanları sıfırladığı için uygulamayı güncelledikten sonra girip tekrar argüman eklemeniz gerekiyor ve tekrardan update-desktop-database yapmanız gerek.
+
+Flatpak tarafında alınan güncellemeler bu ayarı sıfırlayabiliyor. Uygulamayı güncelledikten sonra `.desktop` dosyasına girip argümanı tekrar eklemeniz ve `update-desktop-database` komutunu yeniden çalıştırmanız gerekebilir.
+
 Bu kadar basit.
+
+## Sorun giderme
+
+- **Discord proxy'siz açılıyor:** Önce tamamen kapatın, arka planda açık kalan süreç bayrağı yok sayar.
+  ```bash
+  pkill -f -i discord
+  ```
+- **Terminalden açılıyor, menüden açılmıyor:** `.desktop` dosyasındaki `Exec=` satırında `--proxy-server` bayrağı var mı kontrol edin.
+- **Flatpak kullanmıyorsanız:** Kısayol dosyası genelde `/usr/share/applications/discord.desktop` konumundadır, aynı şekilde kopyalayıp `Exec=` satırının sonuna bayrağı ekleyin.
+- **`curl` SOCKS5 hatası veriyor:** `getent hosts discord.com` çıktısına bakın, Cloudflare adresi (`162.159.x.x`) değilse 3. adımı kontrol edin.
+
+## Notlar
+
+- Sadece `--proxy-server` ile açılan Discord proxy'den geçer. Bayraksız açılan örnek doğrudan bağlanır ve çalışmaz.
+- Sesli sohbet UDP kullanır, ByeDPI'nın SOCKS5 proxy'si ise yalnızca TCP taşır. Sesli kanalların çalışacağı garanti değildir, test edilmemiştir.
 
 ## Kaldırma
 
@@ -119,3 +184,9 @@ sudo rm /etc/systemd/resolved.conf.d/discord.conf
 sudo systemctl restart systemd-resolved
 rm ~/.local/share/applications/com.discordapp.Discord.desktop
 ```
+
+## Teşekkürler
+
+- [hufrea/byedpi](https://github.com/hufrea/byedpi)
+- [elrondforwin/byedpi-turkey](https://github.com/elrondforwin/byedpi-turkey) (alternatif profiller ve dnscrypt ayarı için)
+- [DNSCrypt/dnscrypt-proxy](https://github.com/DNSCrypt/dnscrypt-proxy)
