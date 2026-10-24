@@ -1,4 +1,4 @@
-# discord-only-byedpi
+# [REHBER] discord-only-byedpi
 
 Tüm internet trafiği yerine sadece Discord'u DNS adresinden geçirme.
 
