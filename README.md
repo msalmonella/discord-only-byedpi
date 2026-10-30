@@ -4,7 +4,7 @@ Tüm internet trafiği yerine sadece Discord'u ByeDPI proxy'si ve DNS yönlendir
 
 [hufrea/byedpi](https://github.com/hufrea/byedpi) için hufrea'ya teşekkürler.
 
-> **Test edilen ortam:** Fedora, Flatpak Discord, Superonline.
+> **Test edilen ortam:** Fedora, Flatpak Discord, Sansuroffline.
 
 ## 1. ByeDPI'ı derleyin
 
